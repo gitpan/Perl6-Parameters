@@ -1,0 +1,95 @@
+=head1 TITLE
+
+Perl6::Parameters - Prototypes with named parameters
+
+=head1 SYNOPSIS
+
+	use Perl6::Parameters;
+	
+	sub foo($foo, ARRAY $bar; CODE $baz, *@others) {
+		...
+	}
+
+=head1 DESCRIPTION
+
+Perl6::Parameters allows you to declare subroutines with named parameters in the Perl 6 style.
+
+When you C<use> this module and declare a subroutine with named parameters, this module modifies the subroutine, building a 
+line-noise prototype and adding code to the subroutine to C<my> any variables necessary and assign @_ into the parameter list.
+
+=head2 Named Parameter Format
+
+Most parameters are simple C<$>I<varname>; however, Perl6::Parameters also allows you access to the full power of Perl's 
+built-in prototypes.  Parameters are separated by a comma; a semicolon is also acceptable, and has the same meaning as a 
+semicolon in Perl 5's prototypes.
+
+Perl's prototypes allow you to automatically take a reference to a parameter by prefixing it with a backslash; Sub::Params::Named
+provides a way to access this.  Parameters of the form I<TYPENAME> C<$>I<varname> are automatically converted to the appropriate
+reference types.  The list of supported TYPENAMEs follows:
+
+	TYPENAME | EQUIVALENT | DESCRIPTION
+	---------+------------+--------------------------------------------
+	REF      |     \.     | Auto-reference anything (NYI)
+	GLOB     |     \*     | Auto-reference a glob (for completeness)
+	CODE     |     &      | Auto-reference a code block
+	HASH     |     \%     | Auto-reference a hash
+	ARRAY    |     \@     | Auto-reference an array
+	REGEXP   |     /      | Auto-reference a regular expression (NYI)
+	SCALAR   |     \$     | Auto-reference a scalar
+	---------+------------+--------------------------------------------
+	         |            | In Perl 6 this would declare the type of
+	Anything |     $      |     the parameter; since Perl 5 doesn't 
+	else     |            |     have type declarations, it's treated as
+	         |            |     if the type name wasn't there.
+
+(Items marked NYI have been proposed for inclusion into the Perl 5 core, but haven't happened yet.  For now they're treated as 
+C<$>.)
+
+Any parameter may be an array or hash; this will only take a literal array or hash.  (It takes a reference to the array or hash 
+being passed in, then dereferences it and assigns it to the array.  Thus it will retain the actual size of the array being 
+passed in.)
+
+The last parameter may be an array or hash with a star (*) in front of it; this will be set to any parameters which haven't 
+already been received.
+
+=head1 CAVEATS
+
+Although Perl 6 will pass paramters by constant reference, this module passes them by value.  Appending C<is rw> to a parameter
+in Perl 6 will make it a non-constant reference; however, this module C<die>s if it sees an C<is rw> in a prototype.
+
+@_ keeps some of its special meaning; the result of using a prototype like C<($foo, @_, $bar)> is undefined.  However, @_ may be
+used with the star prefix as the last parameter in the prototype.
+
+=head1 BUGS
+
+=over 4
+
+=item *
+
+B<Quoted strings will still be modified by this module.>  This may or may not be a bug, depending on if you're C<eval>ing strings
+which define subroutines with Perl 6-style parameter lists in them.
+
+=back
+
+There are likely other bugs lurking in this module; if you find one, send me an e-mail.
+
+=head1 AUTHOR
+
+Brent Dax <brentdax1@earthlink.net>
+
+=head1 SPECIAL THANKS
+
+Damian Conway, who wrote both of the modules I used to write this.
+
+Larry Wall, for designing Perl 6.  (Keep going Larry!)
+
+My father, for letting me bounce ideas off him, even though he doesn't know Perl and probably doesn't care if I get this module 
+done.  :^)
+
+=head1 COPYRIGHT
+
+Copyright (C) 2001 Brent Dax.  All Rights Reserved.
+
+This module is free software. It may be used, redistributed and/or modified under the same terms as Perl itself.
+
+=cut

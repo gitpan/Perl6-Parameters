@@ -1,0 +1,13 @@
+use ExtUtils::MakeMaker;
+# See lib/ExtUtils/MakeMaker.pm for details of how to influence
+# the contents of the Makefile that is written.
+WriteMakefile(
+    'NAME'			=> 'Perl6::Parameters',
+    'VERSION_FROM'	=> 'Parameters.pm', # finds $VERSION
+    'PREREQ_PM'		=> {
+		'Filter::Simple' => '0.60',
+		'Switch'		 => '2.04'
+	},
+    ABSTRACT_FROM => 'Parameters.pod',
+    AUTHOR     => 'Brent Dax <brentdax1@earthlink.net>'
+);
