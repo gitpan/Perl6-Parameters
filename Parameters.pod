@@ -1,64 +1,122 @@
-=head1 TITLE
+=head1 NAME
 
-Perl6::Parameters - Prototypes with named parameters
+Perl6::Parameters – Perl 6-style prototypes with named parameters
 
 =head1 SYNOPSIS
 
 	use Perl6::Parameters;
-	
-	sub foo($foo, ARRAY $bar; CODE $baz, *@others) {
+
+	sub mysub($foo, ARRAY $bar, *%rest) {
 		...
 	}
 
-=head1 DESCRIPTION
+=head1 DETAILS
 
-Perl6::Parameters allows you to declare subroutines with named parameters in the Perl 6 style.
+Perl6::Parameters is a Perl module which simulates Perl 6's named parameters.  (When I talk about "named parameters" I mean 
+something like the parameters you're used to from C, Java and many other languages--not pass-a-hash-with-the-parameters-in-it 
+things.)
 
-When you C<use> this module and declare a subroutine with named parameters, this module modifies the subroutine, building a 
-line-noise prototype and adding code to the subroutine to C<my> any variables necessary and assign @_ into the parameter list.
+Like most other programming languages, Perl 6 will support subroutines with pre-declared variables the parameters are put into.  
+(Using this will be optional, however.)  This goes far beyond the "line-noise prototypes" available in Perl 5, which only allow 
+you to control context and automatically take references to some parameters—lines like C<my($first, $second)=(@_)> will no 
+longer be necessary.
 
-=head2 Named Parameter Format
+Although Perl 6 will have this, Perl 5 doesn't; this module makes it so that Perl 5 does.  It uses some other Perl 6-isms too, 
+notably the names for builtin types and the unary-asterisk notation for flattening a list.
 
-Most parameters are simple C<$>I<varname>; however, Perl6::Parameters also allows you access to the full power of Perl's 
-built-in prototypes.  Parameters are separated by a comma; a semicolon is also acceptable, and has the same meaning as a 
-semicolon in Perl 5's prototypes.
+=head2 Crafting Parameter Lists
 
-Perl's prototypes allow you to automatically take a reference to a parameter by prefixing it with a backslash; Sub::Params::Named
-provides a way to access this.  Parameters of the form I<TYPENAME> C<$>I<varname> are automatically converted to the appropriate
-reference types.  The list of supported TYPENAMEs follows:
+Crafting parameter lists is simple; just declare your subroutine and put the parameters, separated by commas or semicolons, in 
+parenthesis.  (Using a semicolon signifies that all remaining parameters are optional; this may not be available this way in 
+Perl 6, but I'm assuming it is until I hear otherwise.)
 
-	TYPENAME | EQUIVALENT | DESCRIPTION
-	---------+------------+--------------------------------------------
-	REF      |     \.     | Auto-reference anything (NYI)
-	GLOB     |     \*     | Auto-reference a glob (for completeness)
-	CODE     |     &      | Auto-reference a code block
-	HASH     |     \%     | Auto-reference a hash
-	ARRAY    |     \@     | Auto-reference an array
-	REGEXP   |     /      | Auto-reference a regular expression (NYI)
-	SCALAR   |     \$     | Auto-reference a scalar
-	---------+------------+--------------------------------------------
-	         |            | In Perl 6 this would declare the type of
-	Anything |     $      |     the parameter; since Perl 5 doesn't 
-	else     |            |     have type declarations, it's treated as
-	         |            |     if the type name wasn't there.
+Most parameters are just variable names like C<$foo>; however, more sophisticated behavior is possible.  There are three ways to 
+achieve this.
 
-(Items marked NYI have been proposed for inclusion into the Perl 5 core, but haven't happened yet.  For now they're treated as 
-C<$>.)
+The first way is by specifying a type for the variable.  Certain types make the actual parameters turn into references to 
+themselves:
 
-Any parameter may be an array or hash; this will only take a literal array or hash.  (It takes a reference to the array or hash 
-being passed in, then dereferences it and assigns it to the array.  Thus it will retain the actual size of the array being 
-passed in.)
+=over 4
 
-The last parameter may be an array or hash with a star (*) in front of it; this will be set to any parameters which haven't 
-already been received.
+=item *
+C<ARRAY $foo>
+
+This turns an array into a reference to itself and stores the reference into C<$foo>.
+
+=item *
+C<HASH $foo>
+
+This turns a hash into a reference to itself and stores the reference into C<$foo>.
+
+=item *
+C<CODE $foo>
+
+This turns a subroutine into a reference to itself and stores the reference into C<$foo>.
+
+=item *
+C<SCALAR $foo>
+
+This turns a scalar into a reference to itself and stores the reference into C<$foo>.
+
+=item *
+C<GLOB $foo>
+
+This turns a typeglob into a reference to itself and stores the reference into C<$foo>.  Typeglobs will be going away in Perl 6; 
+this type exists in this module so that it's useful for general use in Perl 5.
+
+=item *
+C<REGEXP $foo>
+
+This turns a string or C<m//> into a C<qr//>'d version of itself (like the first parameter of C<split>) and stores it into 
+C<$foo>.*
+
+=item *
+C<REF $foo>
+
+This turns any parameter into a reference to itself and stores it into C<$foo>.*
+
+=item *
+C<AnythingElse $foo>
+
+This has no effect in this module; it's treated as though you'd typed C<$foo> without the C<AnythingElse>.
+
+=back
+
+*These are being discussed in Perl5-Porters but haven't been implemented yet; using them currently causes a syntax error.
+
+For example, if a subroutine had the parameters C<($foo, HASH $bar, CODE $baz)> and was called with C<($scalar, %hash, &mysub)> 
+the subroutine would get the contents of C<$scalar>, a reference to C<%hash> and a reference to C<&mysub>.
+
+The second way is by supplying an actual array or hash as a parameter name.  This requires an array or hash to be passed in for 
+that parameter; it preserves the length of the array or hash.
+
+The final way is only available for the last parameter: if an array or hash is prefixed with an asterisk, that array or hash 
+will be filled with any additional parameters.
 
 =head1 CAVEATS
 
-Although Perl 6 will pass paramters by constant reference, this module passes them by value.  Appending C<is rw> to a parameter
-in Perl 6 will make it a non-constant reference; however, this module C<die>s if it sees an C<is rw> in a prototype.
+=over 4
 
-@_ keeps some of its special meaning; the result of using a prototype like C<($foo, @_, $bar)> is undefined.  However, @_ may be
-used with the star prefix as the last parameter in the prototype.
+=item *
+
+In Perl 6, parameters will be passed by constant reference; in this module parameters are passed by value.
+
+=item *
+
+In Perl 6, putting an C<is rw> at the end of a parameter will make it read-write; trying to use C<is rw> with this module will 
+cause an error.
+
+=item *
+
+C<@_> and C<%_> may only be used for the last parameter, and then only when prefixed by an asterisk; any other use causes 
+undefined behavior.
+
+=item *
+
+In Perl 6 a definition like C<HASH $foo> will take either a literal hash (with a C<%> sign in front of it) or a reference to a 
+hash; this module requires a C<%> sign.  (Similar limitations apply for arrays.)
+
+=back
 
 =head1 BUGS
 
@@ -66,30 +124,16 @@ used with the star prefix as the last parameter in the prototype.
 
 =item *
 
-B<Quoted strings will still be modified by this module.>  This may or may not be a bug, depending on if you're C<eval>ing strings
-which define subroutines with Perl 6-style parameter lists in them.
+Currently this module will modify string constants and POD documents if they appear to contain subroutine definitions.
 
 =back
-
-There are likely other bugs lurking in this module; if you find one, send me an e-mail.
 
 =head1 AUTHOR
 
 Brent Dax <brentdax1@earthlink.net>
 
-=head1 SPECIAL THANKS
-
-Damian Conway, who wrote both of the modules I used to write this.
-
-Larry Wall, for designing Perl 6.  (Keep going Larry!)
-
-My father, for letting me bounce ideas off him, even though he doesn't know Perl and probably doesn't care if I get this module 
-done.  :^)
-
 =head1 COPYRIGHT
 
-Copyright (C) 2001 Brent Dax.  All Rights Reserved.
+Copyright (C) 2001 Brent Dax.
 
-This module is free software. It may be used, redistributed and/or modified under the same terms as Perl itself.
-
-=cut
+This module is free software and may be used, redistributed and modified under the same terms as Perl itself.

@@ -4,3 +4,6 @@ Revision history for Perl extension Perl6::Interpolators.
 	- original version; created by h2xs 1.21 with options
 		-AX -n Perl6::Interpolators
 
+0.02  Fri Aug 10 02:11:78 2001
+	- rewrite of documentation
+

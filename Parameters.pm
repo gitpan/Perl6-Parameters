@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Switch 'Perl6';		#given/when
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Filter::Simple;
 
