@@ -5,9 +5,8 @@ WriteMakefile(
     'NAME'			=> 'Perl6::Parameters',
     'VERSION_FROM'	=> 'Parameters.pm', # finds $VERSION
     'PREREQ_PM'		=> {
-		'Filter::Simple' => '0.60',
-		'Switch'		 => '2.04'
+		'Filter::Simple' => '0.78',
+		'Switch'		 => '2.09'
 	},
-    ABSTRACT_FROM => 'Parameters.pod',
     AUTHOR     => 'Brent Dax <brentdax1@earthlink.net>'
 );

@@ -2,6 +2,5 @@ Changes
 Makefile.PL
 MANIFEST
 Parameters.pm
-Parameters.pod
 README
 test.pl
